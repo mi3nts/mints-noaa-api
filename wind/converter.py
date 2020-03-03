@@ -86,7 +86,7 @@ def convertData(year, month, day, refHour, needUpdate):
 
     print('Storing data onto files: SUCCESS!')
 
-    API_ENDPOINT = "http://localhost:3000/data"
+    API_ENDPOINT = "http://imd.utdallas.edu:3000/wind_data"
     if needUpdate == True:
         r = requests.put(url = API_ENDPOINT)
     else:
@@ -190,7 +190,7 @@ def getData(year, month, day, refHour):
         else:
             datetimeFormat = str(year) + '-' + "{:02d}".format(month) + '-' + "{:02d}".format(day) + 'T' + "{:02d}".format(recorded_hour) + ':00:00.000Z'
         print datetimeFormat
-        API_ENDPOINT = "http://localhost:3000/data/" + datetimeFormat
+        API_ENDPOINT = "http://imd.utdallas.edu:3000/wind_data/" + datetimeFormat
         r = urllib2.urlopen(API_ENDPOINT)
         x = json.load(r)
         needUpdate = False
