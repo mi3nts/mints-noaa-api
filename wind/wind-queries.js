@@ -82,7 +82,7 @@ const updateData = (request, response) => {
  */
 const postDataFromSource = (request, response) => {
     var fs = require("fs");
-    var content = String(fs.readFileSync("../wind/data/wind_data.json"));
+    var content = String(fs.readFileSync("./wind/data/wind_data.json"));
 
     parseFile = JSON.parse(content);
 
