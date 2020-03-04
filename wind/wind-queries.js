@@ -1,10 +1,7 @@
 const Pool = require('pg').Pool
-const pool = new Pool({
-    user: 'julia',
-    host: 'localhost',
-    database: 'postgres',
-    password: 'v9BbsE7wLaF9Nw9A',
-    port: 5432,
+const pgcon = require('../postgrescon.js')
+const pool = new PSQL({
+    connectionString: pgcon.PSQL_LOGIN
 })
 
 /* Table format:

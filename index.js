@@ -2,7 +2,7 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const app = express()
 const port = 3000
-const db = require('./wind/wind-queries')
+const wind_db = require('./wind/wind-queries')
 
 //Giakhanh's index.js start
 const PSQL = require('pg').Pool
@@ -13,7 +13,7 @@ const psql = new PSQL({
     connectionString: pgcon.PSQL_LOGIN
 })
 
-const db = require('./sensors/queries-air-sensors.js')
+const sensor_db = require('./sensors/queries-air-sensors.js')
 //End of index.js
 
 app.use(bodyParser.json())
@@ -35,21 +35,21 @@ app.get('/health', (request, response) => {
     response.json({message: 'GET HEALTH STATUS : OK !'})
 })
 
-app.get('/wind_data', db.getAllDataFromDatabase)
-app.post('/wind_data', db.postDataFromSource)
-app.put('/wind_data', db.updateData)
-app.get('/wind_data/latest', db.getLatestDataFromDatabase)
-app.get('/wind_data/:recorded_time', db.getDataByRecordedTime)
-app.delete('/wind_data/old', db.flushOldData)
-app.delete('/wind_data/all', db.flushAll)
+app.get('/wind_data', wind_db.getAllDataFromDatabase)
+app.post('/wind_data', wind_db.postDataFromSource)
+app.put('/wind_data', wind_db.updateData)
+app.get('/wind_data/latest', wind_db.getLatestDataFromDatabase)
+app.get('/wind_data/:recorded_time', wind_db.getDataByRecordedTime)
+app.delete('/wind_data/old', wind_db.flushOldData)
+app.delete('/wind_data/all', wind_db.flushAll)
 
 // Giakhanh's REST API calls
-app.get('/data_pm1', db.getSensorData)
-app.get('/data_pm2_5', db.getSensorData)
-app.get('/data_pm10', db.getSensorData)
+app.get('/data_pm1', sensor_db.getSensorData)
+app.get('/data_pm2_5', sensor_db.getSensorData)
+app.get('/data_pm10', sensor_db.getSensorData)
 
-app.get('/sensor_id_list', db.getListOfSensorIDs)
-app.get('/latest', db.getLatestSensorData)
+app.get('/sensor_id_list', sensor_db.getListOfSensorIDs)
+app.get('/latest', sensor_db.getLatestSensorData)
 
 /*
     Where the script begins as soon as "node index.js" is run

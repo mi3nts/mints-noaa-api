@@ -8,7 +8,7 @@ const pg = require('pg')
 pg.types.setTypeParser(1114, str => str);
 
 const PSQL = require('pg').Pool
-const pgcon = require('./postgrescon.js')
+const pgcon = require('../postgrescon.js')
 
 // Postgre connector object and connection information
 const psql = new PSQL({
