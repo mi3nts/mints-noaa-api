@@ -3,7 +3,7 @@ const pgcon = require('../postgrescon.js')
 
 const PSQL = require('pg').Pool
 const pool = new PSQL({
-    connectionString: pgcon.PSQL_LOGIN
+    connectionString: pgcon.PSQL_WIND_LOGIN
 })
 
 /* Table format:

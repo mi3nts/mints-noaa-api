@@ -68,7 +68,7 @@ function generateLatestSensorIDDataRequests() {
         if (error) console.log(error)
         else {
             for(var i = 0; i < results.rows.length; i++) {
-                app.get('/latest/' + results.rows[i].sensor_id.trim(), db.getLatestSensorDataForID)
+                app.get('/latest/' + results.rows[i].sensor_id.trim(), sensor_db.getLatestSensorDataForID)
             }
         }
     })
