@@ -1,5 +1,7 @@
-const Pool = require('pg').Pool
+// const Pool = require('pg').Pool
 const pgcon = require('../postgrescon.js')
+
+const PSQL = require('pg').Pool
 const pool = new PSQL({
     connectionString: pgcon.PSQL_LOGIN
 })
