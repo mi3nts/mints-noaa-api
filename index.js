@@ -3,18 +3,7 @@ const bodyParser = require('body-parser')
 const app = express()
 const port = 3000
 const wind_db = require('./wind/wind-queries')
-
-//Giakhanh's index.js start
-const PSQL = require('pg').Pool
-const pgcon = require('./postgrescon.js')
-
-// Postgre connector object and connection information
-const psql = new PSQL({
-    connectionString: pgcon.PSQL_LOGIN
-})
-
 const sensor_db = require('./sensors/queries-air-sensors.js')
-//End of index.js
 
 app.use(bodyParser.json())
 app.use(
@@ -27,14 +16,16 @@ app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
 });
+
+// Base request
 app.get('/', (request, response) => {
     response.json({info: 'Node.js, Express, and Postgres API' })
 })
-
 app.get('/health', (request, response) => {
     response.json({message: 'GET HEALTH STATUS : OK !'})
 })
 
+// Wind data routes
 app.get('/wind_data', wind_db.getAllDataFromDatabase)
 app.post('/wind_data', wind_db.postDataFromSource)
 app.put('/wind_data', wind_db.updateData)
@@ -43,7 +34,7 @@ app.get('/wind_data/:recorded_time', wind_db.getDataByRecordedTime)
 app.delete('/wind_data/old', wind_db.flushOldData)
 app.delete('/wind_data/all', wind_db.flushAll)
 
-// Giakhanh's REST API calls
+// Air quality data routes
 app.get('/data_pm1', sensor_db.getSensorData)
 app.get('/data_pm2_5', sensor_db.getSensorData)
 app.get('/data_pm10', sensor_db.getSensorData)
@@ -51,25 +42,12 @@ app.get('/data_pm10', sensor_db.getSensorData)
 app.get('/sensor_id_list', sensor_db.getListOfSensorIDs)
 app.get('/latest', sensor_db.getLatestSensorData)
 
+app.get('/latest/:sensor_id', sensor_db.getLatestSensorDataForID)
+app.get('/data/:sensor_id/:start_date/:end_date', sensor_db.getSensorDataRangeForID)
+
 /*
     Where the script begins as soon as "node index.js" is run
 */
 app.listen(port, () => {
     console.log('Server running on port ' + port + '.')
-    generateLatestSensorIDDataRequests()
 })
-
-/*
-    Generates the individual API requests for each sensor ID to get the latest data
-*/
-function generateLatestSensorIDDataRequests() {
-    // Queries sensor_meta for list of sensor_ids
-    psql.query("SELECT sensor_id FROM sensor_meta", (error, results) => {
-        if (error) console.log(error)
-        else {
-            for(var i = 0; i < results.rows.length; i++) {
-                app.get('/latest/' + results.rows[i].sensor_id.trim(), sensor_db.getLatestSensorDataForID)
-            }
-        }
-    })
-}
