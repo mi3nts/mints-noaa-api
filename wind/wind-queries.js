@@ -51,7 +51,7 @@ const getDataByRecordedTime = (request, response) => {
 
 const updateData = (request, response) => {
     var fs = require("fs");
-    var content = String(fs.readFileSync("./data/wind_data.json"));
+    var content = String(fs.readFileSync("./wind/data/wind_data.json"));
 
     parseFile = JSON.parse(content);
     recorded = parseFile[0]["recordedTime"];
