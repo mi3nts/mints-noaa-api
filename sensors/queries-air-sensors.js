@@ -128,7 +128,7 @@ const getSensorDataRangeForID = (request, response) => {
         "FROM data_pm1 " +
         "INNER JOIN data_pm2_5 ON data_pm2_5.timestamp = data_pm1.timestamp AND data_pm2_5.sensor_id = data_pm1.sensor_id " +
         "INNER JOIN data_pm10 ON data_pm10.timestamp = data_pm1.timestamp AND data_pm10.sensor_id = data_pm1.sensor_id " +
-        "WHERE data_pm1.timestamp >= \'" + request.params.start_date + "\'" + " AND data_pm1.timestamp < \'" + request.params.end_date + "\'" +
+        "WHERE data_pm1.timestamp >= \'" + request.params.start_date + "\'" + " AND data_pm1.timestamp <= \'" + request.params.end_date + "\'" +
         "AND data_pm1.sensor_id = \'" + request.params.sensor_id + "\'" +
         "ORDER BY data_pm1.timestamp ASC;"
     psql.query(getQuery, (error, results) => {
