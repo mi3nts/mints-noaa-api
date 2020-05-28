@@ -1,0 +1,22 @@
+{
+  "name": "mints-noaa-api",
+  "version": "1.0.0",
+  "description": "Combine mints sensors api and noaa wind api",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mi3nts/mints-noaa-api.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mi3nts/mints-noaa-api/issues"
+  },
+  "homepage": "https://github.com/mi3nts/mints-noaa-api#readme",
+  "dependencies": {
+    "pg": "^8.2.1"
+  }
+}

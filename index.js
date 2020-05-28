@@ -44,6 +44,7 @@ app.get('/latest', sensor_db.getLatestSensorData)
 
 app.get('/latest/:sensor_id', sensor_db.getLatestSensorDataForID)
 app.get('/data/:sensor_id/:start_date/:end_date', sensor_db.getSensorDataRangeForID)
+//app.get('/data_export/:sensor_id/:start_date/:end_date', sensor_db.getSensorDataRangeExportCSVForID)
 
 /*
     Where the script begins as soon as "node index.js" is run
