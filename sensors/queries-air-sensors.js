@@ -65,7 +65,7 @@ const getLatestSensorData = (request, response) => {
     Get the list of sensor IDs
 */
 const getListOfSensorIDs = (request, response) => {
-    const getQuery = "SELECT sensor_id FROM sensor_meta;"
+    const getQuery = "SELECT sensor_id FROM sensor_meta WHERE allow_public = true;"
     psql.query(getQuery, (error, results) => {
         if(error) {
             response.json({
