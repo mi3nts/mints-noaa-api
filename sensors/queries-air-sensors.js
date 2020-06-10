@@ -154,8 +154,32 @@ const getSensorDataRangeForID = (request, response) => {
     })
 }
 
-const getSensorDataRangeExportCSVForID = (request, response) => {
-    const getQuery = "SELECT " +
+const getSensorLocations = (request, response) => {
+    const getQuery = "SELECT sensor_id, longitude, latitude, last_updated FROM sensor_meta;"
+    psql.query(getQuery, (error, results) => {
+        if(error) {
+            response.json({
+                status: 500,
+                error: error.message
+            })
+        } else response.status(200).json(results.rows)
+    })
+}
+
+const getSensorLocationForID = (request, response) => {
+    const getQuery = "SELECT sensor_id, longitude, latitude, last_updated FROM sensor_meta WHERE sensor_id = $1;"
+    const getQueryParams = [request.params.sensor_id]
+    psql.query(getQuery, getQueryParams, (error, results) => {
+        if(error) {
+            response.json({
+                status: 500,
+                error: error.message
+            })
+        } else response.status(200).json(results.rows)
+    })
+}
+/*const getSensorDataRangeExportCSVForID = (request, response) => {
+    const getQuery = "COPY (SELECT " +
             "data_pm1.timestamp, " +
             "data_pm1.sensor_id, " +
             "data_pm1.value as pm1, " +
@@ -170,7 +194,7 @@ const getSensorDataRangeExportCSVForID = (request, response) => {
         "INNER JOIN data_pm10 ON data_pm10.timestamp = data_pm1.timestamp AND data_pm10.sensor_id = data_pm1.sensor_id " +
         "WHERE data_pm1.timestamp >= $1 AND data_pm1.timestamp <= $2" +
         "AND data_pm1.sensor_id = $3" +
-        "ORDER BY data_pm1.timestamp ASC;"
+        "ORDER BY data_pm1.timestamp ASC;) "
     const getQueryParams = [request.params.start_date, request.params.end_date, request.params.sensor_id]
     psql.query(getQuery, getQueryParams, (error, results) => {
         if(error) {
@@ -180,7 +204,8 @@ const getSensorDataRangeExportCSVForID = (request, response) => {
             })
         } else response.status(200).json(results.rows)
     })
-}
+}*/
+
 // Needed so functions can be imported in another script file 
 //   and called like an object method
 // Must remain on the bottom of script files
@@ -190,5 +215,6 @@ module.exports = {
     getListOfSensorIDs,
     getLatestSensorDataForID,
     getSensorDataRangeForID,
-    getSensorDataRangeExportCSVForID
+    getSensorLocations,
+    getSensorLocationForID
 }
