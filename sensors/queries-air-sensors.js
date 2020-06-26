@@ -76,7 +76,7 @@ const getLatestSensorData = (request, response) => {
     Get the list of sensor IDs
 */
 const getListOfSensorIDs = (request, response) => {
-    const getQuery = "SELECT sensor_id FROM sensor_meta WHERE allow_public = true;"
+    const getQuery = "SELECT sensor_id FROM sensor_meta WHERE allow_public = true ORDER BY last_updated;"
     psql.query(getQuery, (error, results) => {
         if(error) {
             response.json({
@@ -140,8 +140,8 @@ const getSensorDataRangeForID = (request, response) => {
         "FROM data_pm1 " +
         "INNER JOIN data_pm2_5 ON data_pm2_5.timestamp = data_pm1.timestamp AND data_pm2_5.sensor_id = data_pm1.sensor_id " +
         "INNER JOIN data_pm10 ON data_pm10.timestamp = data_pm1.timestamp AND data_pm10.sensor_id = data_pm1.sensor_id " +
-        "WHERE data_pm1.timestamp >= $1 AND data_pm1.timestamp <= $2" +
-        "AND data_pm1.sensor_id = $3" +
+        "WHERE data_pm1.timestamp >= $1 AND data_pm1.timestamp <= $2 " +
+        "AND data_pm1.sensor_id = $3 " +
         "ORDER BY data_pm1.timestamp ASC;"
     const getQueryParams = [request.params.start_date, request.params.end_date, request.params.sensor_id]
     psql.query(getQuery, getQueryParams, (error, results) => {
