@@ -178,6 +178,19 @@ const getSensorLocationForID = (request, response) => {
         } else response.status(200).json(results.rows)
     })
 }
+
+const getSensorNameForID = (request, response) => {
+    const getQuery = "SELECT sensor_name FROM sensor_meta WHERE sensor_id = $1;"
+    const getQueryParams = [request.params.sensor_id]
+    psql.query(getQuery, getQueryParams, (error, results) => {
+        if(error) {
+            response.json({
+                status: 500,
+                error: error.message
+            })
+        } else response.status(200).json(results.rows)
+    })
+}
 /*const getSensorDataRangeExportCSVForID = (request, response) => {
     const getQuery = "COPY (SELECT " +
             "data_pm1.timestamp, " +
@@ -216,5 +229,6 @@ module.exports = {
     getLatestSensorDataForID,
     getSensorDataRangeForID,
     getSensorLocations,
-    getSensorLocationForID
+    getSensorLocationForID,
+    getSensorNameForID
 }
