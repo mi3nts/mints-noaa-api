@@ -43,6 +43,7 @@ app.get('/sensor_id_list', sensor_db.getListOfSensorIDs)
 app.get('/latest', sensor_db.getLatestSensorData)
 
 app.get('/latest/:sensor_id', sensor_db.getLatestSensorDataForID)
+app.get('/data/:type/:sensor_id/latest', sensor_db.getDataByTypeLatestForID)
 app.get('/data/:type/:sensor_id/:start_date/:end_date/:interval?', sensor_db.getDataByTypeRangeBySensorID)
 app.get('/data/:sensor_id/:start_date/:end_date/:interval?', sensor_db.getSensorDataRangeForID)
 //app.get('/data_export/:sensor_id/:start_date/:end_date', sensor_db.getSensorDataRangeExportCSVForID)

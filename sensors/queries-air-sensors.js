@@ -125,6 +125,29 @@ const getLatestSensorDataForID = (request, response) => {
     })
 }
 
+const getDataByTypeLatestForID = (request, response) => {
+    var dataType = request.params.type
+    if(dataType != 'pm1' && dataType != 'pm2_5' && dataType != 'pm10') {
+        response.json({
+            status: 500,
+            error: "Invalid data type specified"
+        })
+    } else {
+        const getQuery = "SELECT timestamp, value as " + dataType + " FROM data_" + dataType + " " +
+            "WHERE sensor_id = $1 AND timestamp = (SELECT MAX(timestamp) FROM data_" + dataType + " WHERE sensor_id = $1)" +
+            "ORDER BY timestamp ASC;"
+        const getQueryParams = [request.params.sensor_id]
+        psql.query(getQuery, getQueryParams, (error, results) => {
+            if(error) {
+                response.json({
+                    status: 500,
+                    error: error.message
+                })
+            } else response.status(200).json(results.rows)
+        })
+    }
+}
+
 /*
     Get the time range of sensor data for a specific sensor
 */
@@ -178,7 +201,6 @@ const getDataByTypeRangeBySensorID = (request, response) => {
             } else response.status(200).json(results.rows)
         })
     }
-    
 }
 
 const getSensorLocations = (request, response) => {
@@ -254,6 +276,7 @@ module.exports = {
     getLatestSensorData,
     getListOfSensorIDs,
     getLatestSensorDataForID,
+    getDataByTypeLatestForID,
     getSensorDataRangeForID,
     getDataByTypeRangeBySensorID,
     getSensorLocations,
