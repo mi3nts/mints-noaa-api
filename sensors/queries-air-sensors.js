@@ -76,7 +76,9 @@ const getLatestSensorData = (request, response) => {
     Get the list of sensor IDs
 */
 const getListOfSensorIDs = (request, response) => {
-    const getQuery = "SELECT sensor_id FROM sensor_meta WHERE allow_public = true ORDER BY last_updated;"
+    const getQuery = "SELECT sensor_id FROM sensor_meta WHERE allow_public = true AND " + 
+        "(last_updated BETWEEN now() - interval '4 hours' AND now())" + 
+        "ORDER BY last_updated;"
     psql.query(getQuery, (error, results) => {
         if(error) {
             response.json({
@@ -127,60 +129,6 @@ const getLatestSensorDataForID = (request, response) => {
     Get the time range of sensor data for a specific sensor
 */
 const getSensorDataRangeForID = (request, response) => {
-    var dataInterval = ""
-    if(request.params.interval) {
-        var year = 1, month = 1, day = 1
-        var hour = 1, minute = 1, second = 1
-        var intervalParts = request.params.interval.split(" ")
-        if(intervalParts.length == 1) {
-            if(intervalParts[0].includes(":")) {
-                var intervalTimeParts = intervalParts[0].split(":")
-                if(intervalTimeParts.length == 3) {
-                    hour = (Number(intervalTimeParts[0]) == 0 ? 1 : Number(intervalTimeParts[0]))
-                    minute = (Number(intervalTimeParts[1]) == 0 ? 1 : Number(intervalTimeParts[1]))
-                    second = (Number(intervalTimeParts[2]) == 0 ? 1 : Number(intervalTimeParts[2]))
-                } else if(intervalTimeParts.length == 2) {
-                    minute = (Number(intervalTimeParts[0]) == 0 ? 1 : Number(intervalTimeParts[0]))
-                    second = (Number(intervalTimeParts[1]) == 0 ? 1 : Number(intervalTimeParts[1]))
-                } else {
-                    second = (Number(intervalTimeParts[0]) == 0 ? 1 : Number(intervalTimeParts[0]))
-                }
-            } else {
-                var intervalDateParts = intervalParts[0].split("-")
-                if(intervalDateParts.length == 3) {
-                    year = (Number(intervalDateParts[0]) == 0 ? 1 : Number(intervalDateParts[0]))
-                    month = (Number(intervalDateParts[1]) == 0 ? 1 : Number(intervalDateParts[1]))
-                    day = (Number(intervalDateParts[2]) == 0 ? 1 : Number(intervalDateParts[2]))
-                } else if(intervalDateParts.length == 2) {
-                    month = (Number(intervalDateParts[0]) == 0 ? 1 : Number(intervalDateParts[0]))
-                    day = (Number(intervalDateParts[1]) == 0 ? 1 : Number(intervalDateParts[1]))
-                } else {
-                    day = (Number(intervalDateParts[0]) == 0 ? 1 : Number(intervalDateParts[0]))
-                }
-            }
-        }
-        if(intervalParts.length == 2) {
-            var intervalTimeParts = intervalParts[1].split(":")
-            if(intervalTimeParts.length == 3) {
-                hour = (Number(intervalTimeParts[0]) == 0 ? 1 : Number(intervalTimeParts[0]))
-                minute = (Number(intervalTimeParts[1]) == 0 ? 1 : Number(intervalTimeParts[1]))
-                second = (Number(intervalTimeParts[2]) == 0 ? 1 : Number(intervalTimeParts[2]))
-            } else if(intervalTimeParts.length == 2) {
-                minute = (Number(intervalTimeParts[0]) == 0 ? 1 : Number(intervalTimeParts[0]))
-                second = (Number(intervalTimeParts[1]) == 0 ? 1 : Number(intervalTimeParts[1]))
-            } else {
-                second = (Number(intervalTimeParts[0]) == 0 ? 1 : Number(intervalTimeParts[0]))
-            }
-        }
-        
-        dataInterval = 
-          "mod(extract(year from data_pm1.timestamp)::INT, " + year + ") = 0 AND " +
-          "mod(extract(month from data_pm1.timestamp)::INT, " + month + ") = 0 AND " +
-          "mod(extract(day from data_pm1.timestamp)::INT, " + day + ") = 0 AND " +
-          "mod(extract(hour from data_pm1.timestamp)::INT, " + hour + ") = 0 AND " +
-          "mod(extract(minute from data_pm1.timestamp)::INT, " + minute + ") = 0 AND " + 
-          "mod(extract(second from data_pm1.timestamp)::INT, " + second + ") = 0 AND "
-    }
     const getQuery = "SELECT " +
             "data_pm1.timestamp, " +
             "data_pm1.sensor_id, " +
@@ -194,7 +142,7 @@ const getSensorDataRangeForID = (request, response) => {
         "FROM data_pm1 " +
         "INNER JOIN data_pm2_5 ON data_pm2_5.timestamp = data_pm1.timestamp AND data_pm2_5.sensor_id = data_pm1.sensor_id " +
         "INNER JOIN data_pm10 ON data_pm10.timestamp = data_pm1.timestamp AND data_pm10.sensor_id = data_pm1.sensor_id " +
-        "WHERE " + dataInterval + 
+        "WHERE "
         "data_pm1.timestamp >= $1 AND data_pm1.timestamp <= $2 " +
         "AND data_pm1.sensor_id = $3 " +
         "ORDER BY data_pm1.timestamp ASC;"
@@ -207,6 +155,30 @@ const getSensorDataRangeForID = (request, response) => {
             })
         } else response.status(200).json(results.rows)
     })
+}
+
+const getDataByTypeRangeBySensorID = (request, response) => {
+    var dataType = request.params.type
+    if(dataType != 'pm1' && dataType != 'pm2_5' && dataType != 'pm10') {
+        response.json({
+            status: 500,
+            error: "Invalid data type specified"
+        })
+    } else {
+        const getQuery = "SELECT timestamp, value as " + dataType + " FROM data_" + dataType + " " +
+            "WHERE sensor_id = $3 AND timestamp >= $1 AND timestamp <= $2 " +
+            "ORDER BY timestamp ASC;"
+        const getQueryParams = [request.params.start_date, request.params.end_date, request.params.sensor_id]
+        psql.query(getQuery, getQueryParams, (error, results) => {
+            if(error) {
+                response.json({
+                    status: 500,
+                    error: error.message
+                })
+            } else response.status(200).json(results.rows)
+        })
+    }
+    
 }
 
 const getSensorLocations = (request, response) => {
@@ -283,6 +255,7 @@ module.exports = {
     getListOfSensorIDs,
     getLatestSensorDataForID,
     getSensorDataRangeForID,
+    getDataByTypeRangeBySensorID,
     getSensorLocations,
     getSensorLocationForID,
     getSensorNameForID
