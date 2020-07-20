@@ -240,6 +240,37 @@ const getSensorNameForID = (request, response) => {
         } else response.status(200).json(results.rows)
     })
 }
+
+const getSensorStatus = (request, response) => {
+    const getQuery = "SELECT sensor_id, sensor_name, last_updated FROM sensor_meta ORDER BY last_updated DESC"
+    psql.query(getQuery, (error, results) => {
+        if(error) {
+            response.json({
+                status: 500,
+                error: error.message
+            })
+        } else {
+            var htmlbuffer = '<head>' +
+                '<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">' + 
+                '</head>'
+            htmlbuffer += "<table class='table'><thead><tr>" +
+                "<th scope='col'> Last Updated </th>" +
+                "<th scope='col'> Sensor ID </th>" +
+                "<th scope='col'> Sensor Name </th>" +
+                "</tr></thead><tbody>"
+            for(var i = 0; i < results.rows.length; i++) {
+                htmlbuffer += "<tr>" +
+                    "<td>" + results.rows[i].last_updated + "</td>" + 
+                    "<td>" + results.rows[i].sensor_id + "</td>" +
+                    "<td>" + results.rows[i].sensor_name + "</td>" +
+                    "</tr>"
+            }
+            htmlbuffer += "</tbody></table>"
+            response.status(200).send(htmlbuffer)
+        }
+    })
+}
+
 /*const getSensorDataRangeExportCSVForID = (request, response) => {
     const getQuery = "COPY (SELECT " +
             "data_pm1.timestamp, " +
@@ -281,5 +312,6 @@ module.exports = {
     getDataByTypeRangeBySensorID,
     getSensorLocations,
     getSensorLocationForID,
-    getSensorNameForID
+    getSensorNameForID,
+    getSensorStatus
 }

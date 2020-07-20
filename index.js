@@ -50,6 +50,9 @@ app.get('/data/:sensor_id/:start_date/:end_date/:interval?', sensor_db.getSensor
 app.get('/locations', sensor_db.getSensorLocations)
 app.get('/location/:sensor_id', sensor_db.getSensorLocationForID)
 app.get('/sensorNameOf/:sensor_id', sensor_db.getSensorNameForID)
+
+app.get('/sensors/status', sensor_db.getSensorStatus)
+
 /*
     Where the script begins as soon as "node index.js" is run
 */
