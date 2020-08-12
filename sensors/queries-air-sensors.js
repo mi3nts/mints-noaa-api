@@ -2,7 +2,8 @@
     queries.js
     MINTS-BACKEND
     
-    Queries data from postgre
+    Queries data from postgreSQL and provides .json output
+    (Data-version)
 */
 const pg = require('pg')
 pg.types.setTypeParser(1114, str => str);
@@ -14,35 +15,6 @@ const pgcon = require('../postgrescon.js')
 const psql = new PSQL({
     connectionString: pgcon.PSQL_LOGIN
 })
-
-/*
-    Get entire table data based on url
-*/
-const getSensorData = (request, response) => {
-    // Request URL will have the "/" at the beginning so it must be dealt with
-    var getQuery
-    switch(request.url.substr(1)) {
-        case "data_pm1":
-            getQuery = "SELECT * FROM data_pm1 ORDER BY timestamp DESC"
-            break;
-        case "data_pm2_5":
-            getQuery = "SELECT * FROM data_pm2_5 ORDER BY timestamp DESC"
-            break;
-        case "data_pm10":
-            getQuery = "SELECT * FROM data_pm10 ORDER BY timestamp DESC"
-            break;
-    }
-    psql.query(getQuery, (error, results) => {
-        if(error) {
-            response.json({
-                status: 500,
-                error: error.message
-            })
-        }
-        // Display JSON data 
-        else response.status(200).json(results.rows)
-    })
-}
 
 /*
     Get the latest sensor data out of all sensors
@@ -180,7 +152,7 @@ const getSensorDataRangeForID = (request, response) => {
     })
 }
 
-const getDataByTypeRangeBySensorID = (request, response) => {
+const getRangeDataByTypeBySensorID = (request, response) => {
     var dataType = request.params.type
     if(dataType != 'pm1' && dataType != 'pm2_5' && dataType != 'pm10') {
         response.json({
@@ -240,8 +212,9 @@ const getSensorNameForID = (request, response) => {
         } else response.status(200).json(results.rows)
     })
 }
-/*const getSensorDataRangeExportCSVForID = (request, response) => {
-    const getQuery = "COPY (SELECT " +
+
+const getExportCSVSensorDataRangeForID = (request, response) => {
+    const getQuery = "SELECT " +
             "data_pm1.timestamp, " +
             "data_pm1.sensor_id, " +
             "data_pm1.value as pm1, " +
@@ -256,7 +229,7 @@ const getSensorNameForID = (request, response) => {
         "INNER JOIN data_pm10 ON data_pm10.timestamp = data_pm1.timestamp AND data_pm10.sensor_id = data_pm1.sensor_id " +
         "WHERE data_pm1.timestamp >= $1 AND data_pm1.timestamp <= $2" +
         "AND data_pm1.sensor_id = $3" +
-        "ORDER BY data_pm1.timestamp ASC;) "
+        "ORDER BY data_pm1.timestamp ASC;"
     const getQueryParams = [request.params.start_date, request.params.end_date, request.params.sensor_id]
     psql.query(getQuery, getQueryParams, (error, results) => {
         if(error) {
@@ -264,21 +237,22 @@ const getSensorNameForID = (request, response) => {
                 status: 500,
                 error: error.message
             })
-        } else response.status(200).json(results.rows)
+        } else {
+            response.status(200).json(results.rows)
+        }
     })
-}*/
+}
 
 // Needed so functions can be imported in another script file 
 //   and called like an object method
 // Must remain on the bottom of script files
 module.exports = {
-    getSensorData,
     getLatestSensorData,
     getListOfSensorIDs,
     getLatestSensorDataForID,
     getDataByTypeLatestForID,
     getSensorDataRangeForID,
-    getDataByTypeRangeBySensorID,
+    getRangeDataByTypeBySensorID,
     getSensorLocations,
     getSensorLocationForID,
     getSensorNameForID
