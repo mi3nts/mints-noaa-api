@@ -255,5 +255,6 @@ module.exports = {
     getRangeDataByTypeBySensorID,
     getSensorLocations,
     getSensorLocationForID,
-    getSensorNameForID
+    getSensorNameForID,
+    getSensorStatus
 }
