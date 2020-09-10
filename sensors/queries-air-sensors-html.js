@@ -18,6 +18,7 @@ const psql = new PSQL({
 
 
 const getSensorStatus = (request, response) => {
+    const starttime = (new Date())
     // Initial data query from the sensor metadata table
     const getQuery = "SELECT sensor_id, sensor_name, last_updated FROM sensor_meta ORDER BY last_updated DESC;"
     psql.query(getQuery, (error, results) => {
@@ -76,8 +77,12 @@ const getSensorStatus = (request, response) => {
                         "</div>" +
                         "</div></nav>"
 
-                    // Add table header
-                    htmlbuffer += "<table class='table table-sm'><thead><tr>" +
+                    // Div container to allow table header to stick below the navbar
+                    htmlbuffer += "<div style=\"position: relative, z-index: 0; margin-top: 25px;\">"
+
+                    // Add table header, along with table and thead styles to allow table header to stick below the navbar
+                    htmlbuffer += "<table class='table table-sm' style=\"display: table; table-layout: fixed;\">" +
+                        "<thead style='position: fixed; top: 50px; left: 0; right: 0; width: 100%; table-layout: fixed; display: table; background-color: white;'><tr>" +
                         "<th scope='col'> Last Updated </th>" +
                         "<th scope='col'> Sensor ID </th>" +
                         "<th scope='col'> Sensor Name </th>" +
@@ -148,7 +153,8 @@ const getSensorStatus = (request, response) => {
                             "<td>" + results.rows[i].sensor_name + "</td>"
                         htmlbuffer += htmlDataBuffer + "</tr>"
                     }
-                    htmlbuffer += "</tbody><caption>As of " + (new Date()) + "</caption></table>"
+                    htmlbuffer += "</tbody><caption>As of " + (new Date()) + "</caption>" + 
+                        "<caption>Generated in " + (new Date().getTime() - starttime.getTime()) + " ms </caption></table></div>"
                     response.status(200).send(htmlbuffer)
                 }
             })
@@ -160,6 +166,7 @@ const getSensorStatus = (request, response) => {
     Get the time range of sensor data for a specific sensor
 */
 const getSensorDataRangeForID = (request, response) => {
+    const starttime = (new Date())
     const getQuery = "SELECT " +
         "data_pm1.timestamp, " +
         "data_pm1.sensor_id, " +
@@ -214,8 +221,12 @@ const getSensorDataRangeForID = (request, response) => {
             "</div>" +
             "</div></nav>"
 
-            // Add table column headings
-            htmlRes += "<table class='table table-sm table-bordered table-striped'><thead><tr>" +
+            // Div container to allow table header to stick below the navbar
+            htmlRes += "<div style=\"position: relative, z-index: 0; margin-top: 25px;\">"
+
+            // Add table column headings, along with table and thead styles to allow table header to stick below the navbar
+            htmlRes += "<table class='table table-sm table-bordered table-striped' style=\"display: table; table-layout: fixed;\">" + 
+                "<thead style='position: fixed; top: 50px; left: 0; right: 0; width: 100%; table-layout: fixed; display: table; background-color: white;'><tr>" +
                 "<th scope='col'> Timestamp (UTC) </th>" +
                 "<th scope='col'> Sensor ID </th>" +
                 "<th scope='col'> PM 1 </th>" +
@@ -254,7 +265,8 @@ const getSensorDataRangeForID = (request, response) => {
                     "<td>" + results.rows[i].latitude + "</td>" +
                     "</tr>"
             }
-            htmlRes += "</tbody><caption>Report generated on " + (new Date()) + "</caption></table>"
+            htmlRes += "</tbody><caption>Report generated on " + (new Date()) + "</caption>" +
+                "<caption>Generated in " + (new Date().getTime() - starttime.getTime()) + " ms </caption></table></div>"
             response.status(200).send(htmlRes)
         }
     })
