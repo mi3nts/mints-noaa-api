@@ -49,7 +49,7 @@ const getLatestSensorData = (request, response) => {
 */
 const getListOfSensorIDs = (request, response) => {
     const getQuery = "SELECT sensor_id FROM sensor_meta WHERE allow_public = true AND " + 
-        "(last_updated BETWEEN now() - interval '4 hours' AND now())" + 
+        "(last_updated BETWEEN now() - interval '2 weeks' AND now())" + 
         "ORDER BY last_updated;"
     psql.query(getQuery, (error, results) => {
         if(error) {
