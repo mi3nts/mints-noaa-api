@@ -20,7 +20,7 @@ const psql = new PSQL({
 const getSensorStatus = (request, response) => {
     const starttime = (new Date())
     // Initial data query from the sensor metadata table
-    const getQuery = "SELECT sensor_id, sensor_name, last_updated FROM sensor_meta ORDER BY last_updated DESC;"
+    const getQuery = "SELECT sensor_id, sensor_name, last_updated, allow_public FROM sensor_meta ORDER BY last_updated DESC;"
     psql.query(getQuery, (error, results) => {
         if(error) {
             response.json({
@@ -112,6 +112,10 @@ const getSensorStatus = (request, response) => {
                             rowColor = "table-warning"
                         }
 
+                        var public_indicator = ""
+                        if(results.rows[i].allow_public == false) {
+                            public_indicator = "<span class='badge badge-warning'>Not displayed on map</span>"
+                        }
                         // Search for data related to the currently selected sensor id
                         sensor_id = results.rows[i].sensor_id
                         htmlDataBuffer = ""
@@ -149,7 +153,7 @@ const getSensorStatus = (request, response) => {
                         // Add information html buffer
                         htmlbuffer += "<tr class=\"" + rowColor + "\">" +
                             "<td>" + last_updated + "</td>" + 
-                            "<td>" + sensor_id + "</td>" +
+                            "<td>" + sensor_id + public_indicator + "</td>" +
                             "<td>" + results.rows[i].sensor_name + "</td>"
                         htmlbuffer += htmlDataBuffer + "</tr>"
                     }
