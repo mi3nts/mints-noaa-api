@@ -20,7 +20,18 @@ const psql = new PSQL({
 const getSensorStatus = (request, response) => {
     const starttime = (new Date())
     // Initial data query from the sensor metadata table
-    const getQuery = "SELECT sensor_id, sensor_name, last_updated, allow_public FROM sensor_meta ORDER BY last_updated DESC;"
+    const getQuery = "SELECT sensor_id, sensor_name, location_last_upd, allow_public, " 
+        + "latest_data_timestamp as timestamp, "
+        + "latest_pm1 as pm1, "
+        + "latest_pm2_5 as pm2_5, "
+        + "latest_pm10 as pm10, " 
+        + "latest_temperature as temperature, " 
+        + "latest_humidity as humidity, " 
+        + "latest_pressure as pressure, " 
+        + "latest_dewpoint as dewpoint, "
+        + "latest_longitude as longitude, "
+        + "latest_latitude as latitude "
+        + " FROM sensor_meta ORDER BY location_last_upd DESC;"
     psql.query(getQuery, (error, results) => {
         if(error) {
             response.json({
@@ -28,140 +39,114 @@ const getSensorStatus = (request, response) => {
                 error: error.message
             })
         } else {
-            // Second data query for latest data for all sensor ids
-            const getQueryLatestData = "SELECT DISTINCT ON (data_pm1.sensor_id) " +
-                "data_pm1.timestamp, " +
-                "data_pm1.sensor_id, " +
-                "data_pm1.value as pm1, " +
-                "data_pm2_5.value as pm2_5, " +
-                "data_pm10.value as pm10, " +
-                "data_pm1.temperature, " +
-                "data_pm1.humidity, " +
-                "data_pm1.pressure, " + 
-                "data_pm1.dewpoint, " + 
-                "data_pm1.longitude, " +
-                "data_pm1.latitude " +
-            "FROM data_pm1 " +
-            "INNER JOIN data_pm2_5 ON data_pm2_5.timestamp = data_pm1.timestamp AND data_pm2_5.sensor_id = data_pm1.sensor_id " +
-            "INNER JOIN data_pm10 ON data_pm10.timestamp = data_pm1.timestamp AND data_pm10.sensor_id = data_pm1.sensor_id " +
-            "ORDER BY sensor_id, timestamp DESC;"
-            psql.query(getQueryLatestData, (error, latestData) => {
-                if(error) {
-                    response.json({
-                        status: 500,
-                        error: error.message
-                    })
-                } else {
-                    // Save latest data query into a variable so it can be used again
-                    var data = latestData
+            // Save latest data query into a variable so it can be used again
+            var data = results
                     
-                    // Add formatting style link/library resources for bootstrap
-                    var htmlbuffer = '<head>' +
-                    '<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">' + 
-                    '</head>'
+            // Add formatting style link/library resources for bootstrap
+            var htmlbuffer = '<head>' +
+            '<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">' + 
+            '</head>'
 
-                    // Add auto-refreshing script
-                    htmlbuffer += "<script>setTimeout(\"location.reload(true);\", 300000);</script>"
-                    // Add navbar legend
-                    htmlbuffer += "<nav class=\"navbar sticky-top navbar-expand-lg navbar-light bg-light\">" + 
-                        "<a class=\"navbar-brand\" href=\"#\">MINTS Sensor Status</a>" +
-                        "<button class=\"navbar-toggler\" type=\"button\" data-toggle=\"collapse\" data-target=\"#navbarNavAltMarkup\" aria-controls=\"navbarNavAltMarkup\" aria-expanded=\"false\" aria-label=\"Toggle navigation\">" +
-                        "<span class=\"navbar-toggler-icon\"></span>" +
-                        "</button>" +
-                        "<div class=\"collapse navbar-collapse\" id=\"navbarNavAltMarkup\">" +
-                        "<div class=\"navbar-nav\">" + 
-                            "<a class=\"nav-link disabled\" href=\"#\" style=\"color: black;\">Row color indicates sensor has not updated in: </a>" +
-                            "<a class=\"nav-link disabled\" href=\"#\" style=\"color: black;\"><span style=\"height: 10px; width: 10px; background-color: yellow; border-radius: 50%; display:inline-block;\"></span> over 1 hour</a>" +
-                            "<a class=\"nav-link disabled\" href=\"#\" style=\"color: black;\"><span style=\"height: 10px; width: 10px; background-color: red; border-radius: 50%; display:inline-block;\"></span> over 24 hours</a>" +
-                            "<a class=\"nav-link disabled\" href=\"#\" style=\"color: black;\"><span style=\"height: 10px; width: 10px; background-color: gray; border-radius: 50%; display:inline-block;\"></span> over 2 weeks</a>" +
-                        "</div>" +
-                        "</div></nav>"
+            // Add auto-refreshing script
+            htmlbuffer += "<script>setTimeout(\"location.reload(true);\", 300000);</script>"
+            // Add navbar legend
+            htmlbuffer += "<nav class=\"navbar sticky-top navbar-expand-lg navbar-light bg-light\">" + 
+                "<a class=\"navbar-brand\" href=\"#\">MINTS Sensor Status</a>" +
+                "<button class=\"navbar-toggler\" type=\"button\" data-toggle=\"collapse\" data-target=\"#navbarNavAltMarkup\" aria-controls=\"navbarNavAltMarkup\" aria-expanded=\"false\" aria-label=\"Toggle navigation\">" +
+                "<span class=\"navbar-toggler-icon\"></span>" +
+                "</button>" +
+                "<div class=\"collapse navbar-collapse\" id=\"navbarNavAltMarkup\">" +
+                "<div class=\"navbar-nav\">" + 
+                    "<a class=\"nav-link disabled\" href=\"#\" style=\"color: black;\">Row color indicates sensor has not updated in: </a>" +
+                    "<a class=\"nav-link disabled\" href=\"#\" style=\"color: black;\"><span style=\"height: 10px; width: 10px; background-color: yellow; border-radius: 50%; display:inline-block;\"></span> over 1 hour</a>" +
+                    "<a class=\"nav-link disabled\" href=\"#\" style=\"color: black;\"><span style=\"height: 10px; width: 10px; background-color: red; border-radius: 50%; display:inline-block;\"></span> over 24 hours</a>" +
+                    "<a class=\"nav-link disabled\" href=\"#\" style=\"color: black;\"><span style=\"height: 10px; width: 10px; background-color: gray; border-radius: 50%; display:inline-block;\"></span> over 2 weeks</a>" +
+                "</div>" +
+                "</div></nav>"
 
-                    // Div container to allow table header to stick below the navbar
-                    htmlbuffer += "<div style=\"position: relative, z-index: 0; margin-top: 25px;\">"
+            // Div container to allow table header to stick below the navbar
+            htmlbuffer += "<div style=\"position: relative, z-index: 0; margin-top: 25px;\">"
 
-                    // Add table header, along with table and thead styles to allow table header to stick below the navbar
-                    htmlbuffer += "<table class='table table-sm' style=\"display: table; table-layout: fixed;\">" +
-                        "<thead style='position: fixed; top: 50px; left: 0; right: 0; width: 100%; table-layout: fixed; display: table; background-color: white;'><tr>" +
-                        "<th scope='col'> Last Updated </th>" +
-                        "<th scope='col'> Sensor ID </th>" +
-                        "<th scope='col'> Sensor Name </th>" +
-                        "<th scope='col'> Timestamp </th>" +
-                        "<th scope='col'> PM 1 </th>" +
-                        "<th scope='col'> PM 2.5 </th>" +
-                        "<th scope='col'> PM 10 </th>" +
-                        "<th scope='col'> Temperature </th>" +
-                        "<th scope='col'> Humidity </th>" +
-                        "<th scope='col'> Pressure </th>" +
-                        "<th scope='col'> Dew Point </th>" +
-                        "<th scope='col'> Longitude </th>" +
-                        "<th scope='col'> Latitude </th>" +
-                        "</tr></thead><tbody>"
-                    for(var i = 0; i < results.rows.length; i++) {
-                        last_updated = results.rows[i].last_updated
+            // Add table header, along with table and thead styles to allow table header to stick below the navbar
+            htmlbuffer += "<table class='table table-sm' style=\"display: table; table-layout: fixed;\">" +
+                "<thead style='position: fixed; top: 50px; left: 0; right: 0; width: 100%; table-layout: fixed; display: table; background-color: white;'><tr>" +
+                "<th scope='col'> Last Updated </th>" +
+                "<th scope='col'> Sensor ID </th>" +
+                "<th scope='col'> Sensor Name </th>" +
+                "<th scope='col'> Timestamp </th>" +
+                "<th scope='col'> PM 1 </th>" +
+                "<th scope='col'> PM 2.5 </th>" +
+                "<th scope='col'> PM 10 </th>" +
+                "<th scope='col'> Temperature </th>" +
+                "<th scope='col'> Humidity </th>" +
+                "<th scope='col'> Pressure </th>" +
+                "<th scope='col'> Dew Point </th>" +
+                "<th scope='col'> Longitude </th>" +
+                "<th scope='col'> Latitude </th>" +
+                "</tr></thead><tbody>"
+            for(var i = 0; i < results.rows.length; i++) {
+                last_updated = results.rows[i].location_last_upd
 
-                        // Determine row color based on time since last update
-                        rowColor = ""
-                        last_updated_date = Date.parse(last_updated)
-                        now = (new Date()).getTime()
-                        if(now - last_updated_date > 1209600000) {      // 2 weeks
-                            rowColor = "table-secondary"
-                        } else if(now - last_updated_date > 86400000) { // 24 hours
-                            rowColor = "table-danger"
-                        } else if(now - last_updated_date > 3600000) {  // 1 hour
-                            rowColor = "table-warning"
-                        }
-
-                        var public_indicator = ""
-                        if(results.rows[i].allow_public == false) {
-                            public_indicator = "<span class='badge badge-warning'>Not displayed on map</span>"
-                        }
-                        // Search for data related to the currently selected sensor id
-                        sensor_id = results.rows[i].sensor_id
-                        htmlDataBuffer = ""
-                        for(var j = 0; j < data.rows.length; j++) {
-                            if(sensor_id == data.rows[j].sensor_id) {
-                                htmlDataBuffer += 
-                                    "<td>" + data.rows[j].timestamp + "</td>" + 
-                                    "<td>" + data.rows[j].pm1 + "</td>" +
-                                    "<td>" + data.rows[j].pm2_5 + "</td>" +
-                                    "<td>" + data.rows[j].pm10 + "</td>" +
-                                    "<td>" + data.rows[j].temperature + "</td>" +
-                                    "<td>" + data.rows[j].humidity + "</td>" +
-                                    "<td>" + data.rows[j].pressure + "</td>" +
-                                    "<td>" + data.rows[j].dewpoint + "</td>" +
-                                    "<td>" + data.rows[j].longitude + "</td>" +
-                                    "<td>" + data.rows[j].latitude + "</td>"
-                            }
-                        }
-
-                        // Data columns are marked N/A if no data is found
-                        if(htmlDataBuffer == "") {
-                            htmlDataBuffer += 
-                                "<td> N/A </td>" +
-                                "<td> N/A </td>" +
-                                "<td> N/A </td>" +
-                                "<td> N/A </td>" +
-                                "<td> N/A </td>" +
-                                "<td> N/A </td>" +
-                                "<td> N/A </td>" +
-                                "<td> N/A </td>" +
-                                "<td> N/A </td>" +
-                                "<td> N/A </td>"
-                        }
-
-                        // Add information html buffer
-                        htmlbuffer += "<tr class=\"" + rowColor + "\">" +
-                            "<td>" + last_updated + "</td>" + 
-                            "<td>" + sensor_id + public_indicator + "</td>" +
-                            "<td>" + results.rows[i].sensor_name + "</td>"
-                        htmlbuffer += htmlDataBuffer + "</tr>"
-                    }
-                    htmlbuffer += "</tbody><caption>As of " + (new Date()) + "</caption>" + 
-                        "<caption>Generated in " + (new Date().getTime() - starttime.getTime()) + " ms </caption></table></div>"
-                    response.status(200).send(htmlbuffer)
+                // Determine row color based on time since last update
+                rowColor = ""
+                last_updated_date = Date.parse(last_updated)
+                now = (new Date()).getTime()
+                if(now - last_updated_date > 1209600000) {      // 2 weeks
+                    rowColor = "table-secondary"
+                } else if(now - last_updated_date > 86400000) { // 24 hours
+                    rowColor = "table-danger"
+                } else if(now - last_updated_date > 3600000) {  // 1 hour
+                    rowColor = "table-warning"
                 }
-            })
+
+                var public_indicator = ""
+                if(results.rows[i].allow_public == false) {
+                    public_indicator = "<span class='badge badge-warning'>Not displayed on map</span>"
+                }
+                // Search for data related to the currently selected sensor id
+                sensor_id = results.rows[i].sensor_id
+                htmlDataBuffer = ""
+                for(var j = 0; j < data.rows.length; j++) {
+                    if(sensor_id == data.rows[j].sensor_id) {
+                        htmlDataBuffer += 
+                            "<td>" + data.rows[j].timestamp + "</td>" + 
+                            "<td>" + data.rows[j].pm1 + "</td>" +
+                            "<td>" + data.rows[j].pm2_5 + "</td>" +
+                            "<td>" + data.rows[j].pm10 + "</td>" +
+                            "<td>" + data.rows[j].temperature + "</td>" +
+                            "<td>" + data.rows[j].humidity + "</td>" +
+                            "<td>" + data.rows[j].pressure + "</td>" +
+                            "<td>" + data.rows[j].dewpoint + "</td>" +
+                            "<td>" + data.rows[j].longitude + "</td>" +
+                            "<td>" + data.rows[j].latitude + "</td>"
+                    }
+                }
+
+                // Data columns are marked N/A if no data is found
+                if(htmlDataBuffer == "") {
+                    htmlDataBuffer += 
+                        "<td> N/A </td>" +
+                        "<td> N/A </td>" +
+                        "<td> N/A </td>" +
+                        "<td> N/A </td>" +
+                        "<td> N/A </td>" +
+                        "<td> N/A </td>" +
+                        "<td> N/A </td>" +
+                        "<td> N/A </td>" +
+                        "<td> N/A </td>" +
+                        "<td> N/A </td>"
+                }
+
+                // Add information html buffer
+                htmlbuffer += "<tr class=\"" + rowColor + "\">" +
+                    "<td>" + last_updated + "</td>" + 
+                    "<td>" + sensor_id + public_indicator + "</td>" +
+                    "<td>" + results.rows[i].sensor_name + "</td>"
+                htmlbuffer += htmlDataBuffer + "</tr>"
+            }
+            htmlbuffer += "</tbody><caption>As of " + (new Date()) + ".<br> Generated in " + (new Date().getTime() - starttime.getTime()) + " ms </caption>" + 
+                "</table></div>"
+            response.status(200).send(htmlbuffer)
         }
     })
 }

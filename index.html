@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <title>MINTS-NOAA Data API</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container">
+                <a class="navbar-brand" href="#">MINTS-NOAA Data API</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMenu" aria-controls="navbarMenu" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarMenu">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/html/sensors/status">MINTS Sensors Status</a>
+                        </li>
+                    </ul>
+                    <p class="d-flex">
+                        <a href="https://github.com/mi3nts/mints-noaa-api">View GitHub repository</a>,
+                        Last updated July 22, 2021
+                    </p>
+                </div>
+            </div>
+        </nav>
+        <div class="container">
+            <h3 class="mt-2">REST API Links</h3>
+            <p>All URL links (unless specified otherwise in the Action) return a JSON object</p>
+            <hr>
+            <h4 class="mt-2">MINTS data</h4>
+            <p>
+                Calibrated data output from our processes. Only PM 1, PM 2.5, and PM 10 calibrated data is 
+                available.<br>
+                <h6>Valid :type parameters</h6>
+                <ul>
+                    <li>PM 1 = pm1</li>
+                    <li>PM 2.5 = pm2_5</li>
+                    <li>PM 10 = pm10</li>
+                </ul>
+                <h6>Valid :start_date or :end_date format: YYYY-MM-DD hh:mm:ss (All dates are considered in UTC time)</h6>
+                Sensors are only considered "active" if it has recorded data within the past 2 weeks and is set to be 
+                publically displayed. Sensors not active can still have their data accessed by URLs that return data
+                without the requirement of having an active sensor.
+            </p>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">URL</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th scope="row">/latest/average/:type/:sensor_id/:interval?</th>
+                        <td>
+                            Returns the average of all data within the past :interval x hour(s) 
+                            for a given :sensor_id (default :interval is 1).
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">/latest/all/main</th>
+                        <td>
+                            Returns the latest recorded main data for all active sensors. Main data 
+                            returned only includes PM 1, PM 2.5, and PM 10.
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">/latest/all</th>
+                        <td>
+                            Returns the latest recorded data for all active sensors. Data includes 
+                            PM 1, PM 2.5, PM 10, Temperature, Humidity, Pressure, and Dew Point.
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">/data/average/:type/:sensor_id/:start_date/:end_date/:interval?</th>
+                        <td>
+                            Returns the averages of data (along with the standard deviation) for every :interval 
+                            x hours(s) between the given :start_date and :end_date time range for a :sensor_id
+                            (default :interval is 1).
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">/data/:type/:sensor_id/latest</th>
+                        <td>
+                            Returns the latest recorded data from the given :sensor_id for the 
+                            given :type. Only the data type is returned.
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">/data/:type/:sensor_id/:start_date/:end_date/</th>
+                        <td>
+                            Returns a range of recorded data from the given :sensor_id for the 
+                            given time range, from :start_date to :end_date. Data only includes 
+                            the given :type values.
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">/data/:sensor_id/:start_date/:end_date/</th>
+                        <td>
+                            Returns a range of recorded data from the given :sensor_id for the 
+                            given time range, from :start_date to :end_date. Data includes PM 1, 
+                            PM 2.5, PM 10, Temperature, Humidity, Pressure, and Dew Point. 
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">/locations</th>
+                        <td>
+                            Returns the longitude and latitude coordinates of all active sensors.
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">/sensors/list</th>
+                        <td>
+                            Returns the list of active sensor ids.
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">/sensors/:sensor_id/name</th>
+                        <td>
+                            Returns the sensor name of the given :sensor_id.
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">/sensors/:sensor_id/location</th>
+                        <td>
+                            Returns the longitude and latitude coordinates of the given sensor_id.
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">/sensors/:sensor_id/latest</th>
+                        <td>
+                            Returns the latest recorded data for the given :sensor_id. Data includes 
+                            PM 1, PM 2.5, PM 10, Temperature, Humidity, Pressure, and Dew Point.  
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <hr>
+            <h4 class="mt-2">NOAA data</h4>
+            <p>
+                We currently scrape NOAA data from <a href="https://nomads.ncep.noaa.gov/">nomads.ncep.noaa.gov</a> 
+                (using GFS 1.00 Degree model) and store the data in our database for easier access by our website.
+            </p>
+            <p>
+                Eventually in the future, we will not have NOAA data stored in our database.
+            </p>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">URL</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th scope="row">/wind_data/:recorded_time</th>
+                        <td>Retreives the specified wind data by the given :recorded_time time from NOAA from our database</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">/wind_data/latest</th>
+                        <td>Retreives the latest wind data from NOAA from our database</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">/wind_data</th>
+                        <td>Retreives all available wind data from NOAA from our database</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </body>
+</html>
