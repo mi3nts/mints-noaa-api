@@ -29,8 +29,8 @@ app.get('/info', (request, response) => {
 })
 
 // Wind data routes
-app.get('/wind_data/:recorded_time', wind_db.getDataByRecordedTime)
 app.get('/wind_data/latest', wind_db.getLatestDataFromDatabase)
+app.get('/wind_data/:recorded_time', wind_db.getDataByRecordedTime)
 app.get('/wind_data', wind_db.getAllDataFromDatabase)
 
 // Air quality data routes
